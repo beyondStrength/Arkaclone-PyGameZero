@@ -5,6 +5,7 @@ from random import randint
 WIDTH = 800
 HEIGHT = 600
 
+gameStart = False
 lifes = 3
 
 paddle = Actor("paddle")
@@ -29,13 +30,15 @@ def buildBricks():
             bricks.append(brick)
 
 def gameOver():
-    global lifes, ball_speedY
+    global lifes, ball_speedY, gameStart
     if keyboard.K_RETURN:
         lifes = 3
         bricks.clear()
         buildBricks()
+        paddle.pos = WIDTH/2, HEIGHT*9/10
         ball.pos = WIDTH/2, HEIGHT/2
         ball_speedY = abs(ball_speedY)*-1
+        clock.unschedule(gameOver)
     
 def movePaddle():
     global ballDirection
@@ -47,7 +50,7 @@ def movePaddle():
         ballDirection += 90
 
 def moveBall():
-    global ball_speedX, ball_speedY, lifes
+    global ball_speedX, ball_speedY, lifes, gameStart
     ball.x += ball_speedX
     ball.y += ball_speedY
 
@@ -64,7 +67,9 @@ def moveBall():
             ball.y = HEIGHT/2
             lifes-=1
         else:
-            gameOver()
+            gameStart = False
+            clock.schedule_interval(gameOver, 0.001)
+ 
        
 
 def collisions():
@@ -89,9 +94,19 @@ buildBricks()
 
 #Update
 def update():
-    movePaddle()
-    moveBall()
-    collisions()
+    global gameStart
+    if not gameStart:
+        if keyboard.left:
+            gameStart = True
+        if keyboard.right:
+            gameStart = True
+    else: 
+        movePaddle()
+        collisions()
+        moveBall()
+        if len(bricks) < 1:
+            clock.schedule_interval(gameOver, 0.001)
+
 
 
 #Draw
